@@ -4,13 +4,10 @@ import { useState, useMemo } from "react";
 import { FaSort, FaSortUp, FaSortDown, FaEye } from "react-icons/fa";
 
 export default function SmartTable({ data }) {
-  // Stan sortowania: { key: 'points', direction: 'asc' } lub null
   const [sortConfig, setSortConfig] = useState(null);
   
-  // Stan zaznaczonych ID wierszy (do ukrycia)
   const [selectedIds, setSelectedIds] = useState(new Set());
   
-  // Stan ukrytych grup: tablica obiektów { start, end, ids }
   const [hiddenGroups, setHiddenGroups] = useState([]);
 
   // --- 1. LOGIKA SORTOWANIA ---
@@ -31,7 +28,6 @@ export default function SmartTable({ data }) {
   }, [data, sortConfig]);
 
   const requestSort = (key) => {
-    // Resetujemy ukrywanie przy zmianie sortowania (żeby nie ukryć złych wierszy)
     setHiddenGroups([]); 
     setSelectedIds(new Set());
 
@@ -39,7 +35,7 @@ export default function SmartTable({ data }) {
     if (sortConfig && sortConfig.key === key && sortConfig.direction === "asc") {
       direction = "desc";
     } else if (sortConfig && sortConfig.key === key && sortConfig.direction === "desc") {
-      setSortConfig(null); // Reset do naturalnego
+      setSortConfig(null); 
       return;
     }
     setSortConfig({ key, direction });
@@ -57,22 +53,20 @@ export default function SmartTable({ data }) {
   const handleCollapse = () => {
     if (selectedIds.size === 0) return;
 
-    // Znajdź indeksy zaznaczonych elementów w AKTUALNIE posortowanej tabeli
     const indicesToHide = sortedData
       .map((item, index) => (selectedIds.has(item.id) ? index : -1))
       .filter((index) => index !== -1)
       .sort((a, b) => a - b);
 
-    // Grupuj sąsiadujące indeksy (np. 1, 2, 3 to jedna grupa)
     const newGroups = [];
     if (indicesToHide.length > 0) {
       let currentGroup = { start: indicesToHide[0], end: indicesToHide[0] };
 
       for (let i = 1; i < indicesToHide.length; i++) {
         if (indicesToHide[i] === currentGroup.end + 1) {
-          currentGroup.end = indicesToHide[i]; // Rozszerz grupę
+          currentGroup.end = indicesToHide[i]; 
         } else {
-          newGroups.push(currentGroup); // Zapisz grupę i zacznij nową
+          newGroups.push(currentGroup); 
           currentGroup = { start: indicesToHide[i], end: indicesToHide[i] };
         }
       }
@@ -80,7 +74,7 @@ export default function SmartTable({ data }) {
     }
 
     setHiddenGroups([...hiddenGroups, ...newGroups]);
-    setSelectedIds(new Set()); // Wyczyść zaznaczenie
+    setSelectedIds(new Set()); 
   };
 
   const restoreGroup = (groupIndex) => {
@@ -89,12 +83,10 @@ export default function SmartTable({ data }) {
     setHiddenGroups(newGroups);
   };
 
-  // Sprawdź czy wiersz jest ukryty
   const isRowHidden = (index) => {
     return hiddenGroups.some(g => index >= g.start && index <= g.end);
   };
 
-  // Ikony sortowania
   const getSortIcon = (key) => {
     if (!sortConfig || sortConfig.key !== key) return <FaSort className="text-gray-400" />;
     return sortConfig.direction === "asc" ? <FaSortUp className="text-blue-600" /> : <FaSortDown className="text-blue-600" />;
@@ -102,7 +94,7 @@ export default function SmartTable({ data }) {
 
   return (
     <div className="w-full bg-white p-4 rounded shadow">
-      {/* Przycisk Ukrywania */}
+      {}
       <div className="mb-4">
         <button 
           onClick={handleCollapse}
@@ -131,7 +123,7 @@ export default function SmartTable({ data }) {
           </thead>
           <tbody>
             {sortedData.map((item, index) => {
-              // 1. Sprawdź czy to początek ukrytej grupy
+
               const groupIndex = hiddenGroups.findIndex(g => g.start === index);
               if (groupIndex !== -1) {
                 const count = hiddenGroups[groupIndex].end - hiddenGroups[groupIndex].start + 1;
@@ -152,10 +144,8 @@ export default function SmartTable({ data }) {
                 );
               }
 
-              // 2. Jeśli wiersz jest w środku ukrytej grupy -> nie wyświetlaj go
               if (isRowHidden(index)) return null;
 
-              // 3. Normalny wiersz
               return (
                 <tr key={item.id} className="bg-white border-b hover:bg-gray-50">
                   <td className="p-4">
@@ -173,7 +163,7 @@ export default function SmartTable({ data }) {
               );
             })}
           </tbody>
-          {/* Footer wymagany w zadaniu */}
+          {}
           <tfoot className="bg-gray-100 font-semibold text-gray-700">
             <tr>
               <td colSpan="4" className="px-6 py-3 text-center">

@@ -18,26 +18,22 @@ export default function RegisterPage() {
     const password = e.target.password.value;
     const confirmPassword = e.target.confirmPassword.value;
 
-    // 1. Walidacja haseł
     if (password !== confirmPassword) {
       setError("Hasła muszą być identyczne.");
       setIsLoading(false);
       return;
     }
 
-    // 2. Rejestracja w Firebase
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       console.log("Zarejestrowano użytkownika:", userCredential.user.uid);
 
-      // 3. Wysłanie e-maila weryfikacyjnego i wylogowanie (zgodnie z Lab 8)
       await sendEmailVerification(userCredential.user);
-      await signOut(auth); // Wylogowujemy, bo użytkownik ma najpierw potwierdzić e-mail
+      await signOut(auth);
       
       router.push("/user/verify");
     } catch (err) {
       console.error(err);
-      // Tłumaczenie błędów Firebase na polski (opcjonalne, ale pomocne)
       if (err.code === "auth/email-already-in-use") {
         setError("Ten adres e-mail jest już zajęty.");
       } else if (err.code === "auth/weak-password") {

@@ -6,7 +6,6 @@ import { FaHome, FaTable, FaUser, FaSignOutAlt } from 'react-icons/fa';
 export default function Sidebar() {
   const pathname = usePathname();
 
-  // Funkcja pomocnicza do aktywnego linku
   const getLinkClass = (path) => {
     const baseClass = "flex items-center px-4 py-2 mt-5 text-gray-600 transition-colors duration-300 transform rounded-md hover:bg-gray-200 hover:text-gray-700";
     const activeClass = "bg-gray-200 text-gray-700";
@@ -32,7 +31,7 @@ export default function Sidebar() {
           </Link>
 
           <Link href="/articles" className={getLinkClass('/articles')}>
-            <FaTable className="w-5 h-5" /> {/* Możesz zmienić ikonę jeśli chcesz */}
+            <FaTable className="w-5 h-5" /> {}
             <span className="mx-4 font-medium">Artykuły (Baza)</span>
           </Link>
 

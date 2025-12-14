@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Suspense } from 'react';
 
-// Musimy użyć Suspense, ponieważ korzystamy z useSearchParams (wymóg Next.js)
 export default function SignInPage() {
   return (
     <Suspense fallback={<div>Ładowanie...</div>}>
@@ -18,7 +17,6 @@ export default function SignInPage() {
 function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  // Jeśli jest returnUrl to go bierzemy, jeśli nie to wracamy na główną "/"
   const returnUrl = searchParams.get("returnUrl") || "/";
   
   const [error, setError] = useState("");
@@ -34,7 +32,6 @@ function SignInForm() {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      // Udane logowanie -> przekierowanie
       router.push(returnUrl);
     } catch (err) {
       console.error(err);

@@ -10,7 +10,7 @@ export default function TablePage() {
         Realizacja Tematu 3: Sortowanie, Footer oraz funkcja Collapse (zwijanie grup wierszy).
       </p>
       
-      {/* Przekazujemy dane do komponentu */}
+      {}
       <SmartTable data={initialData} />
     </div>
   );

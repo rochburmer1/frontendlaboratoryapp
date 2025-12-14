@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
-import { auth, db } from "@/app/lib/firebase"; // Import db
+import { auth, db } from "@/app/lib/firebase"; 
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore"; // Funkcje bazy danych
+import { doc, getDoc, setDoc } from "firebase/firestore"; 
 import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
@@ -10,7 +10,6 @@ export default function ProfilePage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   
-  // Stan formularza adresu
   const [address, setAddress] = useState({ city: "", street: "", zipCode: "" });
   const [msg, setMsg] = useState("");
 
@@ -20,7 +19,6 @@ export default function ProfilePage() {
         router.push("/user/signin");
       } else {
         setUser(currentUser);
-        // POBIERANIE DANYCH Z BAZY (Lab 9)
         try {
           const docRef = doc(db, "users", currentUser.uid);
           const docSnap = await getDoc(docRef);
@@ -36,16 +34,15 @@ export default function ProfilePage() {
     return () => unsubscribe();
   }, [router]);
 
-  // ZAPISYWANIE DANYCH DO BAZY (Lab 9)
   const handleSaveAddress = async (e) => {
     e.preventDefault();
     setMsg("");
     if (!user) return;
     try {
       await setDoc(doc(db, "users", user.uid), {
-        email: user.email, // Przy okazji zapisujemy email
+        email: user.email, 
         address: address
-      }, { merge: true }); // merge: true nie nadpisuje całego dokumentu, tylko aktualizuje pola
+      }, { merge: true }); 
       setMsg("✅ Adres zapisany w bazie Firestore!");
     } catch (e) {
       console.error(e);
@@ -65,13 +62,13 @@ export default function ProfilePage() {
     <div className="max-w-lg mx-auto mt-10 p-8 bg-white rounded-lg shadow-lg">
       <h1 className="text-2xl font-bold mb-6 text-gray-800">Profil Użytkownika</h1>
       
-      {/* Sekcja Info */}
+      {}
       <div className="mb-6 p-4 bg-gray-50 rounded">
         <p><strong>Email:</strong> {user.email}</p>
         <p><strong>UID:</strong> <span className="text-xs font-mono">{user.uid}</span></p>
       </div>
 
-      {/* Formularz Adresowy (Lab 9) */}
+      {}
       <form onSubmit={handleSaveAddress} className="space-y-4 mb-8 border-t pt-4">
         <h3 className="text-lg font-semibold text-gray-700">Dane Adresowe (Firestore)</h3>
         
