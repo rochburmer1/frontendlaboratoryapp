@@ -1,73 +1,115 @@
 "use client";
 import { useEffect, useState } from "react";
-import { auth } from "@/app/lib/firebase";
+import { auth, db } from "@/app/lib/firebase"; // Import db
 import { onAuthStateChanged, signOut } from "firebase/auth";
+import { doc, getDoc, setDoc } from "firebase/firestore"; // Funkcje bazy danych
 import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  
+  // Stan formularza adresu
+  const [address, setAddress] = useState({ city: "", street: "", zipCode: "" });
+  const [msg, setMsg] = useState("");
 
   useEffect(() => {
-    // Nasłuchuj zmian w stanie logowania
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (!currentUser) {
-        // Jeśli nie zalogowany -> wyrzuć do logowania
         router.push("/user/signin");
       } else {
         setUser(currentUser);
+        // POBIERANIE DANYCH Z BAZY (Lab 9)
+        try {
+          const docRef = doc(db, "users", currentUser.uid);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists() && docSnap.data().address) {
+            setAddress(docSnap.data().address);
+          }
+        } catch (e) {
+          console.error("Błąd pobierania danych:", e);
+        }
       }
       setLoading(false);
     });
-
     return () => unsubscribe();
   }, [router]);
 
-  const handleLogout = async () => {
+  // ZAPISYWANIE DANYCH DO BAZY (Lab 9)
+  const handleSaveAddress = async (e) => {
+    e.preventDefault();
+    setMsg("");
+    if (!user) return;
     try {
-      await signOut(auth);
-      router.push("/user/signin");
-    } catch (error) {
-      console.error("Błąd wylogowania:", error);
+      await setDoc(doc(db, "users", user.uid), {
+        email: user.email, // Przy okazji zapisujemy email
+        address: address
+      }, { merge: true }); // merge: true nie nadpisuje całego dokumentu, tylko aktualizuje pola
+      setMsg("✅ Adres zapisany w bazie Firestore!");
+    } catch (e) {
+      console.error(e);
+      setMsg("❌ Błąd zapisu.");
     }
   };
 
-  if (loading) {
-    return <div className="p-8 text-center text-gray-600">Ładowanie profilu...</div>;
-  }
+  const handleLogout = async () => {
+    await signOut(auth);
+    router.push("/user/signin");
+  };
 
-  if (!user) return null; // Zabezpieczenie przed mignięciem
+  if (loading) return <div className="p-10 text-center">Ładowanie...</div>;
+  if (!user) return null;
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-lg">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">Twój Profil</h1>
+    <div className="max-w-lg mx-auto mt-10 p-8 bg-white rounded-lg shadow-lg">
+      <h1 className="text-2xl font-bold mb-6 text-gray-800">Profil Użytkownika</h1>
       
-      <div className="space-y-4 mb-8">
-        <div>
-          <label className="block text-sm font-medium text-gray-500">Adres E-mail</label>
-          <p className="text-lg text-gray-900 font-medium">{user.email}</p>
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-500">ID Użytkownika (UID)</label>
-          <p className="text-xs text-gray-400 font-mono bg-gray-100 p-2 rounded break-all">
-            {user.uid}
-          </p>
-        </div>
-
-        <div>
-           <label className="block text-sm font-medium text-gray-500">Status weryfikacji</label>
-           <span className={`inline-block px-2 py-1 text-xs font-semibold rounded ${user.emailVerified ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
-             {user.emailVerified ? "Zweryfikowany" : "Niezweryfikowany"}
-           </span>
-        </div>
+      {/* Sekcja Info */}
+      <div className="mb-6 p-4 bg-gray-50 rounded">
+        <p><strong>Email:</strong> {user.email}</p>
+        <p><strong>UID:</strong> <span className="text-xs font-mono">{user.uid}</span></p>
       </div>
 
-      <button
-        onClick={handleLogout}
-        className="w-full bg-red-600 text-white font-bold py-2 px-4 rounded hover:bg-red-700 transition"
-      >
+      {/* Formularz Adresowy (Lab 9) */}
+      <form onSubmit={handleSaveAddress} className="space-y-4 mb-8 border-t pt-4">
+        <h3 className="text-lg font-semibold text-gray-700">Dane Adresowe (Firestore)</h3>
+        
+        <div>
+          <label className="block text-sm text-gray-600">Miasto</label>
+          <input 
+            type="text" 
+            value={address.city}
+            onChange={(e) => setAddress({...address, city: e.target.value})}
+            className="w-full border p-2 rounded"
+          />
+        </div>
+        <div>
+          <label className="block text-sm text-gray-600">Ulica</label>
+          <input 
+            type="text" 
+            value={address.street}
+            onChange={(e) => setAddress({...address, street: e.target.value})}
+            className="w-full border p-2 rounded"
+          />
+        </div>
+        <div>
+          <label className="block text-sm text-gray-600">Kod Pocztowy</label>
+          <input 
+            type="text" 
+            value={address.zipCode}
+            onChange={(e) => setAddress({...address, zipCode: e.target.value})}
+            className="w-full border p-2 rounded"
+          />
+        </div>
+
+        <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+          Zapisz Adres
+        </button>
+        {msg && <p className="text-center text-sm mt-2">{msg}</p>}
+      </form>
+
+      <button onClick={handleLogout} className="w-full bg-red-500 text-white py-2 rounded hover:bg-red-600">
         Wyloguj się
       </button>
     </div>
